@@ -12,18 +12,24 @@ public class UNUSED_GUI {
     private JTextField old_period_text_field;
     private JPanel UNUSED;
     private JButton start_program_btn;
-    private JTextArea result_area;
     private JTextField disc_name_text_field;
     private JCheckBox docxCheckBox;
     private JCheckBox xlsxCheckBox;
     private JCheckBox pdfCheckBox;
     private JCheckBox pptxCheckBox;
+    private JScrollPane JScrollPane;
+    private JButton DeleteBtn;
+    private CheckBoxList fileCheckBoxList;
 
     public static int time_period;
     public static String disc_name = ":\\";
     public static List<String> doctype_list = new ArrayList<String>();
 
     public UNUSED_GUI() {
+
+        fileCheckBoxList = new CheckBoxList(new CheckBoxListModel());
+        JScrollPane.setViewportView(fileCheckBoxList);
+
         start_program_btn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -32,6 +38,13 @@ public class UNUSED_GUI {
             time_period = Integer.parseInt(old_period_text_field.getText());
             disc_name = disc_name_text_field.getText() + disc_name;
             UNUSED_MAIN();
+            }
+        });
+
+        DeleteBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                delete_data();
             }
         });
     }
@@ -54,7 +67,7 @@ public class UNUSED_GUI {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs){
                     if(RESOURCES.is_Target_File(file) && RESOURCES.is_Older_Than(file, time_period)){
-                        result_area.append(file.toAbsolutePath() + "\n");
+                        ((CheckBoxListModel) fileCheckBoxList.getModel()).addElement(new JCheckBox(file.toAbsolutePath().toString()));
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -73,9 +86,8 @@ public class UNUSED_GUI {
     }
 
     private void clear_data(){
-        doctype_list.clear();
+        ((CheckBoxListModel) fileCheckBoxList.getModel()).clear();
         disc_name = ":\\";
-        result_area.setText("");
     }
 
     private void add_doctype(){
@@ -90,6 +102,20 @@ public class UNUSED_GUI {
         }
         if(pptxCheckBox.isSelected()){
             doctype_list.add(pptxCheckBox.getText());
+        }
+    }
+
+    private void delete_data(){
+
+        CheckBoxListModel model = (CheckBoxListModel) fileCheckBoxList.getModel();
+        for (int i = model.size() - 1; i >= 0; i--) {
+            JCheckBox checkBox = (JCheckBox) model.getElementAt(i);
+            if (checkBox.isSelected()) {
+                Path file_path = Paths.get(checkBox.getText());
+                RESOURCES.delete_file(file_path);
+                System.out.println(checkBox.getText() + " is Deleted \n");
+                model.remove(i);
+            }
         }
     }
 }
